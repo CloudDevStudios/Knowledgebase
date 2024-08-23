@@ -1,0 +1,4 @@
+fastapi
+uvicorn
+pinecone-client
+yt-dlp
