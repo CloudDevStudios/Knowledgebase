@@ -1,13 +1,13 @@
 from fastapi import FastAPI, HTTPException, BackgroundTasks, Query
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, conlist
 from typing import List
 import os
 from dotenv import load_dotenv
 from loguru import logger
-from pinecone_module import check_if_exists_in_pinecone, embed_and_add_to_pinecone, rerank_results, cosine_similarity, index as pinecone_index
-import youtube_download_module
 import re
+from pinecone_module import check_if_exists_in_pinecone, embed_and_add_to_pinecone, rerank_results, index as pinecone_index
+import youtube_download_module
 
 # Load environment variables
 load_dotenv()
@@ -27,22 +27,19 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Models
 class VectorModel(BaseModel):
     id: str
-    vector: List[float]
+    vector: conlist(float, min_items=1, max_items=1536)
 
 class QueryModel(BaseModel):
-    vector: List[float]
+    vector: conlist(float, min_items=1, max_items=1536)
     top_k: int = Field(default=10, ge=1, le=100)
 
-# Helper Functions
 def is_valid_youtube_url(url: str) -> bool:
     """Checks if a URL is a valid YouTube video or playlist URL."""
     youtube_regex = re.compile(r"(?:https?:\/\/)?(?:www\.)?(?:youtube\.com|youtu\.be)\/(?:watch\?v=)?(?:playlist\?list=)?([a-zA-Z0-9_-]+)")
     return bool(youtube_regex.match(url))
 
-# API Endpoints
 @app.get("/health")
 async def health_check():
     """Health check endpoint."""
@@ -65,13 +62,12 @@ async def upsert_vectors(vectors: List[VectorModel]):
     try:
         upserted_vectors = []
         for v in vectors:
-            # Check if vector already exists
             if not check_if_exists_in_pinecone(v.id):
                 embed_and_add_to_pinecone(v.id, v.vector, "Sample Title")
                 upserted_vectors.append((v.id, v.vector))
             else:
                 logger.info(f"Vector with ID {v.id} already exists. Skipping.")
-
+        
         logger.info(f"Upserted vectors: {upserted_vectors}")
         return {"message": "Vectors upserted successfully.", "upserted_count": len(upserted_vectors)}
     except Exception as e:

@@ -56,6 +56,14 @@
         "documentation": {}
     },
     {
+        "label": "conlist",
+        "importPath": "pydantic",
+        "description": "pydantic",
+        "isExtraImport": true,
+        "detail": "pydantic",
+        "documentation": {}
+    },
+    {
         "label": "List",
         "importPath": "typing",
         "description": "typing",
@@ -97,6 +105,15 @@
         "documentation": {}
     },
     {
+        "label": "re",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "re",
+        "description": "re",
+        "detail": "re",
+        "documentation": {}
+    },
+    {
         "label": "check_if_exists_in_pinecone",
         "importPath": "pinecone_module",
         "description": "pinecone_module",
@@ -121,14 +138,6 @@
         "documentation": {}
     },
     {
-        "label": "cosine_similarity",
-        "importPath": "pinecone_module",
-        "description": "pinecone_module",
-        "isExtraImport": true,
-        "detail": "pinecone_module",
-        "documentation": {}
-    },
-    {
         "label": "index",
         "importPath": "pinecone_module",
         "description": "pinecone_module",
@@ -143,15 +152,6 @@
         "importPath": "youtube_download_module",
         "description": "youtube_download_module",
         "detail": "youtube_download_module",
-        "documentation": {}
-    },
-    {
-        "label": "re",
-        "kind": 6,
-        "isExtraImport": true,
-        "importPath": "re",
-        "description": "re",
-        "detail": "re",
         "documentation": {}
     },
     {
@@ -193,7 +193,7 @@
         "kind": 6,
         "importPath": "main",
         "description": "main",
-        "peekOfCode": "class VectorModel(BaseModel):\n    id: str\n    vector: List[float]\nclass QueryModel(BaseModel):\n    vector: List[float]\n    top_k: int = Field(default=10, ge=1, le=100)\n# Helper Functions\ndef is_valid_youtube_url(url: str) -> bool:\n    \"\"\"Checks if a URL is a valid YouTube video or playlist URL.\"\"\"\n    youtube_regex = re.compile(r\"(?:https?:\\/\\/)?(?:www\\.)?(?:youtube\\.com|youtu\\.be)\\/(?:watch\\?v=)?(?:playlist\\?list=)?([a-zA-Z0-9_-]+)\")",
+        "peekOfCode": "class VectorModel(BaseModel):\n    id: str\n    vector: conlist(float, min_items=1, max_items=1536)\nclass QueryModel(BaseModel):\n    vector: conlist(float, min_items=1, max_items=1536)\n    top_k: int = Field(default=10, ge=1, le=100)\ndef is_valid_youtube_url(url: str) -> bool:\n    \"\"\"Checks if a URL is a valid YouTube video or playlist URL.\"\"\"\n    youtube_regex = re.compile(r\"(?:https?:\\/\\/)?(?:www\\.)?(?:youtube\\.com|youtu\\.be)\\/(?:watch\\?v=)?(?:playlist\\?list=)?([a-zA-Z0-9_-]+)\")\n    return bool(youtube_regex.match(url))",
         "detail": "main",
         "documentation": {}
     },
@@ -202,7 +202,7 @@
         "kind": 6,
         "importPath": "main",
         "description": "main",
-        "peekOfCode": "class QueryModel(BaseModel):\n    vector: List[float]\n    top_k: int = Field(default=10, ge=1, le=100)\n# Helper Functions\ndef is_valid_youtube_url(url: str) -> bool:\n    \"\"\"Checks if a URL is a valid YouTube video or playlist URL.\"\"\"\n    youtube_regex = re.compile(r\"(?:https?:\\/\\/)?(?:www\\.)?(?:youtube\\.com|youtu\\.be)\\/(?:watch\\?v=)?(?:playlist\\?list=)?([a-zA-Z0-9_-]+)\")\n    return bool(youtube_regex.match(url))\n# API Endpoints\n@app.get(\"/health\")",
+        "peekOfCode": "class QueryModel(BaseModel):\n    vector: conlist(float, min_items=1, max_items=1536)\n    top_k: int = Field(default=10, ge=1, le=100)\ndef is_valid_youtube_url(url: str) -> bool:\n    \"\"\"Checks if a URL is a valid YouTube video or playlist URL.\"\"\"\n    youtube_regex = re.compile(r\"(?:https?:\\/\\/)?(?:www\\.)?(?:youtube\\.com|youtu\\.be)\\/(?:watch\\?v=)?(?:playlist\\?list=)?([a-zA-Z0-9_-]+)\")\n    return bool(youtube_regex.match(url))\n@app.get(\"/health\")\nasync def health_check():\n    \"\"\"Health check endpoint.\"\"\"",
         "detail": "main",
         "documentation": {}
     },
@@ -211,7 +211,7 @@
         "kind": 2,
         "importPath": "main",
         "description": "main",
-        "peekOfCode": "def is_valid_youtube_url(url: str) -> bool:\n    \"\"\"Checks if a URL is a valid YouTube video or playlist URL.\"\"\"\n    youtube_regex = re.compile(r\"(?:https?:\\/\\/)?(?:www\\.)?(?:youtube\\.com|youtu\\.be)\\/(?:watch\\?v=)?(?:playlist\\?list=)?([a-zA-Z0-9_-]+)\")\n    return bool(youtube_regex.match(url))\n# API Endpoints\n@app.get(\"/health\")\nasync def health_check():\n    \"\"\"Health check endpoint.\"\"\"\n    return {\"status\": \"healthy\"}\n@app.get(\"/indexes\")",
+        "peekOfCode": "def is_valid_youtube_url(url: str) -> bool:\n    \"\"\"Checks if a URL is a valid YouTube video or playlist URL.\"\"\"\n    youtube_regex = re.compile(r\"(?:https?:\\/\\/)?(?:www\\.)?(?:youtube\\.com|youtu\\.be)\\/(?:watch\\?v=)?(?:playlist\\?list=)?([a-zA-Z0-9_-]+)\")\n    return bool(youtube_regex.match(url))\n@app.get(\"/health\")\nasync def health_check():\n    \"\"\"Health check endpoint.\"\"\"\n    return {\"status\": \"healthy\"}\n@app.get(\"/indexes\")\nasync def list_indexes():",
         "detail": "main",
         "documentation": {}
     },
@@ -220,7 +220,7 @@
         "kind": 5,
         "importPath": "main",
         "description": "main",
-        "peekOfCode": "app = FastAPI()\n# Add CORS middleware\napp.add_middleware(\n    CORSMiddleware,\n    allow_origins=[\"*\"],\n    allow_credentials=True,\n    allow_methods=[\"*\"],\n    allow_headers=[\"*\"],\n)\n# Models",
+        "peekOfCode": "app = FastAPI()\n# Add CORS middleware\napp.add_middleware(\n    CORSMiddleware,\n    allow_origins=[\"*\"],\n    allow_credentials=True,\n    allow_methods=[\"*\"],\n    allow_headers=[\"*\"],\n)\nclass VectorModel(BaseModel):",
         "detail": "main",
         "documentation": {}
     },
