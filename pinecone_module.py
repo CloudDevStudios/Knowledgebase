@@ -1,47 +1,63 @@
-
+import os
+from dotenv import load_dotenv
 import pinecone
+from sentence_transformers import SentenceTransformer
 import logging
-from openai.embeddings_utils import get_embedding  # Assuming usage of OpenAI for embeddings
 
-# Initialize logging
-logging.basicConfig(filename='pinecone_api.log', level=logging.INFO,
-                    format='%(asctime)s:%(levelname)s:%(message)s')
+# Load environment variables
+load_dotenv()
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 # Initialize Pinecone
-pinecone.init(api_key="YOUR_PINECONE_API_KEY", environment="us-east-1-gcp")
-index = pinecone.Index("chosen")
+pinecone.init(api_key=os.getenv("PINECONE_API_KEY"), environment=os.getenv("PINECONE_ENVIRONMENT"))
+index_name = os.getenv("PINECONE_INDEX_NAME", "default-index")
+index = pinecone.Index(index_name)
+
+# Initialize sentence transformer model
+model = SentenceTransformer('all-MiniLM-L6-v2')
+
+def get_embedding(text):
+    """Generate embedding for given text."""
+    return model.encode(text).tolist()
 
 def check_if_exists_in_pinecone(id):
+    """Check if a vector with given id exists in Pinecone."""
     try:
         response = index.fetch([id])
         exists = id in response['vectors']
-        logging.info(f"Check if exists in Pinecone for ID {id}: {exists}")
+        logger.info(f"Check if exists in Pinecone for ID {id}: {exists}")
         return exists
     except Exception as e:
-        logging.error(f"Error checking existence in Pinecone: {e}")
+        logger.error(f"Error checking existence in Pinecone: {e}")
         raise
 
-def embed_and_add_to_pinecone(file, id, title):
+def embed_and_add_to_pinecone(id, vector, title):
+    """Add a vector to Pinecone index."""
     try:
-        # Actual embedding logic using OpenAI embeddings or another model
-        with open(file, 'r') as f:
-            content = f.read()
-        vector = get_embedding(content)  # Replace with actual embedding logic
-        index.upsert([(id, vector)])
-        logging.info(f"Embedding and adding file to Pinecone with ID {id}")
+        index.upsert([(id, vector, {'title': title})])
+        logger.info(f"Added vector to Pinecone with ID {id}")
     except Exception as e:
-        logging.error(f"Error embedding and adding to Pinecone: {e}")
+        logger.error(f"Error adding to Pinecone: {e}")
         raise
 
 def rerank_results(query_vector, results):
+    """Rerank results based on cosine similarity."""
     try:
-        # Assuming results is a list of tuples (id, vector)
         ranked_results = sorted(results, key=lambda x: cosine_similarity(query_vector, x[1]), reverse=True)
-        logging.info("Results reranked based on cosine similarity.")
+        logger.info("Results reranked based on cosine similarity.")
         return ranked_results
     except Exception as e:
-        logging.error(f"Error during reranking: {e}")
+        logger.error(f"Error during reranking: {e}")
         raise
 
 def cosine_similarity(vec1, vec2):
-    return sum(x * y for x, y in zip(vec1, vec2)) / (sum(x**2 for x in vec1) ** 0.5 * sum(y**2 for y in vec2) ** 0.5)
+    """Calculate cosine similarity between two vectors."""
+    dot_product = sum(a * b for a, b in zip(vec1, vec2))
+    magnitude1 = sum(a * a for a in vec1) ** 0.5
+    magnitude2 = sum(b * b for b in vec2) ** 0.5
+    if magnitude1 * magnitude2 == 0:
+        return 0
+    return dot_product / (magnitude1 * magnitude2)
