@@ -5,6 +5,6 @@ yt-dlp==2023.3.4
 python-dotenv==0.19.0
 sentence-transformers==2.2.2
 pydantic==1.8.2
-requests==2.26.0
+requests==2.32.2
 tqdm
 loguru==0.5.3
