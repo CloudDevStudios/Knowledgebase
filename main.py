@@ -97,8 +97,8 @@ async def query_vectors(query: QueryModel):
 @app.get("/youtube/download_transcript")
 async def download_transcript(
     video_url: str = Query(..., description="The URL of the YouTube video"),
-    output_dir: str = "transcripts",
     transcript_language: str = "en",
+    output_dir: str = "transcripts",
     output_file_name: str = "transcript"
 ):
     """Downloads a transcript for a YouTube video."""
