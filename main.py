@@ -125,8 +125,8 @@ async def download_transcript(
 
 @app.get("/youtube/download_playlist_transcripts")
 async def download_playlist_transcripts(
-    playlist_url: str = Query(..., description="The URL of the YouTube playlist"),
-    background_tasks: BackgroundTasks
+    background_tasks: BackgroundTasks,
+    playlist_url: str = Query(..., description="The URL of the YouTube playlist")
 ):
     """Initiates background task to download transcripts for all videos in a YouTube playlist."""
     try:
